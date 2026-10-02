@@ -1,0 +1,10 @@
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+build/
+.idea/
+*.iml
+.env
+.env.*
+!.env.example
+supabase/.temp/

@@ -1,0 +1,15 @@
+name: beauty_booking_demo
+description: Beauty appointment booking demo
+publish_to: none
+version: 1.0.0+1
+environment:
+  sdk: '>=3.3.0 <4.0.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  supabase_flutter: ^2.15.4
+flutter:
+  uses-material-design: true
+dev_dependencies:
+  flutter_test:
+    sdk: flutter

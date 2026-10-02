@@ -1,0 +1,23 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:beauty_booking_demo/main.dart';
+
+void main() {
+  testWidgets('Customer page has no dashboard entry', (tester) async {
+    await tester.pumpWidget(const BeautyApp());
+    expect(find.text('BEAUTY STUDIO'), findsOneWidget);
+    expect(find.text('Dashboard'), findsNothing);
+    expect(find.text('Yönetici girişi'), findsNothing);
+  });
+  for (final route in ['/admin', '/dashboard']) {
+    testWidgets('$route fails closed without backend configuration', (tester) async {
+      await tester.pumpWidget(const BeautyApp());
+      final context = tester.element(find.byType(BookingPage));
+      Navigator.of(context).pushNamed(route);
+      await tester.pumpAndSettle();
+      expect(find.text('Yönetici girişi'), findsOneWidget);
+      expect(find.text('Güvenli giriş bağlantısı henüz yapılandırılmadı. Yönetim paneli erişime kapalı.'), findsOneWidget);
+      expect(find.text('Genel bakış'), findsNothing);
+    });
+  }
+}

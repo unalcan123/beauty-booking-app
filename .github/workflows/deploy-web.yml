@@ -1,0 +1,60 @@
+name: Publish Flutter Web
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: github-pages
+  cancel-in-progress: true
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - name: Build website
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.SUPABASE_ANON_KEY }}
+        shell: bash
+        run: |
+          REPO_NAME="${GITHUB_REPOSITORY#*/}"
+          if [[ "$REPO_NAME" == "${GITHUB_REPOSITORY_OWNER}.github.io" ]]; then
+            BASE_PATH="/"
+          else
+            BASE_PATH="/$REPO_NAME/"
+          fi
+          # Repository variables override the committed public config in config/supabase.json.
+          if [[ -z "$SUPABASE_URL" || -z "$SUPABASE_ANON_KEY" ]]; then
+            SUPABASE_URL=$(jq -r .SUPABASE_URL config/supabase.json)
+            SUPABASE_ANON_KEY=$(jq -r .SUPABASE_ANON_KEY config/supabase.json)
+          fi
+          if [[ "$SUPABASE_ANON_KEY" != sb_publishable_* ]]; then
+            echo "SUPABASE_ANON_KEY must be the publishable (sb_publishable_...) key, never a secret key." >&2
+            exit 1
+          fi
+          flutter build web --release --base-href "$BASE_PATH" --dart-define="SUPABASE_URL=$SUPABASE_URL" --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@v4

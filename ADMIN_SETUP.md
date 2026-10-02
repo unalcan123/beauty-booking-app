@@ -13,7 +13,7 @@ Secret/service_role anahtarı bu depoya veya Flutter'a asla eklenmez.
 
 Yeni bir projede yeniden kurmak için:
 
-1. SQL Editor içinde sırasıyla `supabase/schema.sql`, `supabase/booking.sql`, `supabase/cancellation.sql` çalıştır.
+1. SQL Editor içinde sırasıyla `supabase/schema.sql`, `supabase/booking.sql`, `supabase/cancellation.sql`, `supabase/admin_services.sql` çalıştır.
 2. Authentication > Users > Add user ile kendi e-postan ve güçlü şifrenle
    yönetici hesabı oluştur ("Auto Confirm User" işaretli). Şifreyi dosyalara veya GitHub'a yazma.
 3. SQL Editor içinde çalıştır:
@@ -42,6 +42,12 @@ kayıt `book_appointment` ile yapılır. Çalışma saatleri 09:00–18:00 (Euro
 başlangıçlar tam saatte, en fazla 90 gün ileri. Tek koltuk varsayılır: çakışan aktif randevuları
 `appointments_no_overlap` kısıtı veritabanında engeller (eşzamanlı isteklerde de).
 İptal (`status = 'cancelled'`) saati yeniden açar. Ziyaretçiler başka müşterilerin bilgilerini göremez.
+
+## Fiyatlar
+
+Dashboard'daki "Hizmetler ve fiyatlar" bölümünden kalem simgesiyle fiyat değiştirilir.
+Müşteri sayfası fiyatları veritabanından okur. Yeni fiyat yalnızca sonraki randevulara uygulanır;
+mevcut randevular alındıkları fiyatla kalır. Fiyatı yalnızca adminler değiştirebilir (RLS).
 
 ## İptal ve e-posta bildirimleri
 

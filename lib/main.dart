@@ -33,10 +33,15 @@ class BeautyApp extends StatelessWidget {
 
 class Service {
   final String id, name;
-  final int minutes, price;
+  final int minutes;
+  final num price;
   final IconData icon;
   const Service(this.id, this.name, this.minutes, this.price, this.icon);
+  String get priceLabel => euro(price);
 }
+
+String euro(num value) => '€${value == value.roundToDouble() ? value.toInt() : value.toStringAsFixed(2)}';
+const serviceIcons = {'manicure': Icons.back_hand_outlined, 'haircut': Icons.content_cut, 'brows': Icons.face_outlined};
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -45,8 +50,9 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
-  // Mirrors public.services; the server uses its own duration and price when booking.
-  static const services = [
+  // Demo fallback only; with a backend, names, durations and prices come from public.services
+  // (admins edit prices there) and the server uses its own values when booking.
+  static const demoServices = [
     Service('manicure', 'Manikür & jel oje', 60, 35, Icons.back_hand_outlined),
     Service('haircut', 'Saç kesimi & şekillendirme', 45, 30, Icons.content_cut),
     Service('brows', 'Kaş şekillendirme', 20, 15, Icons.face_outlined),
@@ -55,12 +61,32 @@ class _BookingPageState extends State<BookingPage> {
   final name = TextEditingController();
   final phone = TextEditingController();
   final email = TextEditingController();
-  Service service = services.first;
+  List<Service> services = demoServices;
+  Service service = demoServices.first;
+  bool servicesLoading = backendConfigured;
+  bool servicesFailed = false;
   DateTime? date;
   String? time;
   int step = 0;
   bool completed = false, submitting = false;
   String? cancelToken;
+  @override
+  void initState() { super.initState(); if (backendConfigured) loadServices(); }
+  Future<void> loadServices() async {
+    setState(() { servicesLoading = true; servicesFailed = false; });
+    try {
+      final rows = await Supabase.instance.client.from('services').select().order('duration_minutes', ascending: false);
+      final loaded = [for (final r in rows) Service(r['id'] as String, r['name'] as String, r['duration_minutes'] as int,
+        r['price'] as num, serviceIcons[r['id']] ?? Icons.spa_outlined)];
+      if (!mounted) return;
+      setState(() {
+        services = loaded; servicesLoading = false;
+        service = loaded.firstWhere((x) => x.id == service.id, orElse: () => loaded.first);
+      });
+    } catch (_) {
+      if (mounted) setState(() { servicesLoading = false; servicesFailed = true; });
+    }
+  }
   @override
   void dispose() { name.dispose(); phone.dispose(); email.dispose(); super.dispose(); }
 
@@ -126,7 +152,7 @@ class _BookingPageState extends State<BookingPage> {
           const SizedBox(height: 16),
           Text(backendConfigured ? 'Randevunuz alındı' : 'Rezervasyon önizlemesi hazır', textAlign: TextAlign.center, style: TextStyle(fontSize: 25)),
           const SizedBox(height: 12),
-          Text('${name.text}\n${service.name}\n${dateLabel(date!)} • $time\n€${service.price}', textAlign: TextAlign.center),
+          Text('${name.text}\n${service.name}\n${dateLabel(date!)} • $time\n${service.priceLabel}', textAlign: TextAlign.center),
           const SizedBox(height: 12),
           Text(backendConfigured ? 'Saat sizin için ayrıldı. Onay e-postası ${email.text.trim()} adresine gönderilecek.' : 'Bilgiler gönderilmedi ve kaydedilmedi.', textAlign: TextAlign.center),
           if (cancelToken != null) ...[
@@ -152,17 +178,20 @@ class _BookingPageState extends State<BookingPage> {
   );
 
   Widget content() {
+    if (step == 0 && servicesLoading) return const Center(child: CircularProgressIndicator());
+    if (step == 0 && (servicesFailed || services.isEmpty)) return Row(children: [const Expanded(child: Text('Hizmetler yüklenemedi.')),
+      TextButton(onPressed: loadServices, child: const Text('Tekrar dene'))]);
     if (step == 0) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Hizmetini seç', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
       const SizedBox(height: 16),
       ...services.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: InkWell(
         borderRadius: BorderRadius.circular(16), onTap: () => setState(() => service = s),
         child: Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16), color: service == s ? const Color(0xFFF5EDF2) : Colors.white,
-          border: Border.all(color: service == s ? const Color(0xFF79566C) : const Color(0xFFE8E3E6))),
+          borderRadius: BorderRadius.circular(16), color: service.id == s.id ? const Color(0xFFF5EDF2) : Colors.white,
+          border: Border.all(color: service.id == s.id ? const Color(0xFF79566C) : const Color(0xFFE8E3E6))),
           child: Row(children: [Icon(s.icon), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
             children: [Text(s.name, style: const TextStyle(fontWeight: FontWeight.w600)), Text('${s.minutes} dakika', style: const TextStyle(color: Colors.black54))])),
-            Text('€${s.price}'), const SizedBox(width: 12), Icon(service == s ? Icons.radio_button_checked : Icons.radio_button_off)])))))
+            Text(s.priceLabel), const SizedBox(width: 12), Icon(service.id == s.id ? Icons.radio_button_checked : Icons.radio_button_off)])))))
     ]);
     if (step == 1) return BookingTimePicker(
       serviceId: service.id, service: service.name, minutes: service.minutes, price: service.price,
@@ -184,7 +213,7 @@ class _BookingPageState extends State<BookingPage> {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Randevu özeti', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
       const SizedBox(height: 20),
-      ListTile(contentPadding: EdgeInsets.zero, leading: Icon(service.icon), title: Text(service.name), subtitle: Text('${service.minutes} dakika'), trailing: Text('€${service.price}')),
+      ListTile(contentPadding: EdgeInsets.zero, leading: Icon(service.icon), title: Text(service.name), subtitle: Text('${service.minutes} dakika'), trailing: Text(service.priceLabel)),
       const Divider(),
       Text('${dateLabel(date!)} • $time • Europe/Amsterdam'),
       const SizedBox(height: 16), Text(name.text), Text(phone.text), Text(email.text),

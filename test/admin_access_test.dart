@@ -9,6 +9,11 @@ void main() {
     expect(find.text('Dashboard'), findsNothing);
     expect(find.text('Yönetici girişi'), findsNothing);
   });
+  test('Prices are shown without trailing zeros', () {
+    expect(euro(35), '€35');
+    expect(euro(35.0), '€35');
+    expect(euro(16.5), '€16.50');
+  });
   for (final route in ['/admin', '/dashboard']) {
     testWidgets('$route fails closed without backend configuration', (tester) async {
       await tester.pumpWidget(const BeautyApp());

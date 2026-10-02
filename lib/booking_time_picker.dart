@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'admin_portal.dart' show backendConfigured;
+import 'main.dart' show euro;
 
 class BookingTimePicker extends StatefulWidget {
   final String serviceId, service;
-  final int minutes, price;
+  final int minutes;
+  final num price;
   final DateTime? date;
   final String? time;
   final void Function(DateTime, String?) onChanged;
@@ -74,7 +76,7 @@ class _BookingTimePickerState extends State<BookingTimePicker> {
     decoration: BoxDecoration(border: Border.all(color: const Color(0xFFE2E3E8)), borderRadius: BorderRadius.circular(3)),
     child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(widget.service, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
-      const SizedBox(height: 42), Text('${widget.minutes} dakika'), const SizedBox(height: 12), Text('€${widget.price}'),
+      const SizedBox(height: 42), Text('${widget.minutes} dakika'), const SizedBox(height: 12), Text(euro(widget.price)),
     ]));
   Widget slots() {
     final d = widget.date;

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'main.dart' show euro;
 
 const backendUrl = String.fromEnvironment('SUPABASE_URL');
 const backendKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -77,10 +78,53 @@ class AdminDashboard extends StatefulWidget {
   State<AdminDashboard> createState() => _AdminDashboardState();
 }
 class _AdminDashboardState extends State<AdminDashboard> {
-  late Future<List<Map<String, dynamic>>> appointments;
+  late Future<List<Map<String, dynamic>>> appointments, services;
   @override
   void initState() { super.initState(); refresh(); }
-  void refresh() { appointments = Supabase.instance.client.from('appointments').select().order('starts_at'); }
+  void refresh() {
+    appointments = Supabase.instance.client.from('appointments').select().order('starts_at');
+    services = Supabase.instance.client.from('services').select().order('duration_minutes', ascending: false);
+  }
+  // New prices apply to new bookings only; existing appointments keep their booked price.
+  Future<void> editPrice(Map<String, dynamic> service) async {
+    final input = TextEditingController(text: '${service['price']}');
+    String? problem;
+    final saved = await showDialog<bool>(context: context, builder: (c) => StatefulBuilder(builder: (c, setDialog) => AlertDialog(
+      title: Text('${service['name']} fiyatı'),
+      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+        TextField(controller: input, autofocus: true, keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          decoration: InputDecoration(prefixText: '€ ', border: const OutlineInputBorder(), errorText: problem)),
+        const SizedBox(height: 12),
+        const Text('Yeni fiyat yalnızca bundan sonraki randevular için geçerlidir.', style: TextStyle(color: Colors.black54, fontSize: 13)),
+      ]),
+      actions: [TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+        FilledButton(child: const Text('Kaydet'), onPressed: () async {
+          final value = double.tryParse(input.text.trim().replaceAll(',', '.'));
+          if (value == null || value < 0 || value > 10000) { setDialog(() => problem = '0 ile 10000 arasında bir tutar yazın.'); return; }
+          try {
+            final rows = await Supabase.instance.client.from('services').update({'price': value}).eq('id', service['id']).select();
+            if (rows.isEmpty) throw StateError('not allowed');
+            if (c.mounted) Navigator.pop(c, true);
+          } catch (_) {
+            setDialog(() => problem = 'Kaydedilemedi. Yetkinizi ve bağlantınızı kontrol edin.');
+          }
+        })])));
+    input.dispose();
+    if (saved == true && mounted) {
+      setState(refresh);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Fiyat güncellendi.')));
+    }
+  }
+  Widget priceList() => FutureBuilder<List<Map<String, dynamic>>>(future: services, builder: (context, result) {
+    if (result.connectionState != ConnectionState.done) return const LinearProgressIndicator();
+    if (result.hasError) return const Text('Hizmetler yüklenemedi.');
+    return Card(child: Column(children: [for (final sv in result.data!) ListTile(
+      leading: const Icon(Icons.sell_outlined), title: Text('${sv['name']}'), subtitle: Text('${sv['duration_minutes']} dakika'),
+      trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+        Text(euro(sv['price'] as num), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+        IconButton(tooltip: 'Fiyatı değiştir', icon: const Icon(Icons.edit_outlined), onPressed: () => editPrice(sv)),
+      ]))]));
+  });
   Future<void> cancel(String id) async {
     final sure = await showDialog<bool>(context: context, builder: (c) => AlertDialog(
       title: const Text('Randevu iptal edilsin mi?'), content: const Text('Saat yeniden açılır ve müşteriye iptal e-postası gönderilir.'),
@@ -111,6 +155,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return ListView(padding: const EdgeInsets.all(28), children: [
         const Text('Genel bakış', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w600)), const SizedBox(height: 24),
         Wrap(spacing: 16, runSpacing: 16, children: [metric('Aktif randevular', '${active.length}', Icons.calendar_month), metric('Müşteriler', '${rows.map((r) => r['client_email']).toSet().length}', Icons.people_outline), metric('Planlanan gelir', '€${revenue.toStringAsFixed(2)}', Icons.euro)]),
+        const SizedBox(height: 32), const Text('Hizmetler ve fiyatlar', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)), const SizedBox(height: 16),
+        priceList(),
         const SizedBox(height: 32), const Text('Randevular', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)), const SizedBox(height: 16),
         if (rows.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(32), child: Text('Henüz kayıtlı randevu bulunmuyor.'))),
         ...rows.map((r) => Card(child: ListTile(isThreeLine: true, leading: const Icon(Icons.event), title: Text('${r['client_name']} • ${r['service']}'),

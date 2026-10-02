@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:beauty_booking_demo/main.dart';
+import 'package:beauty_booking/main.dart';
 
 void main() {
   testWidgets('Customer page has no dashboard entry', (tester) async {
@@ -8,6 +8,8 @@ void main() {
     expect(find.text('BEAUTY STUDIO'), findsOneWidget);
     expect(find.text('Dashboard'), findsNothing);
     expect(find.text('Yönetici girişi'), findsNothing);
+    expect(find.textContaining('Demo'), findsNothing);
+    expect(find.textContaining('örnek'), findsNothing);
   });
   test('Prices are shown without trailing zeros', () {
     expect(euro(35), '€35');

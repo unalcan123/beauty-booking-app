@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'booking_time_picker.dart';
+import 'booking_design.dart';
 import 'admin_portal.dart';
 import 'cancel_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -17,8 +18,8 @@ class BeautyApp extends StatelessWidget {
     debugShowCheckedModeBanner: false,
     title: 'Beauty Studio',
     theme: ThemeData(useMaterial3: true,
-      colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF79566C)),
-      scaffoldBackgroundColor: Colors.white),
+      colorScheme: ColorScheme.fromSeed(seedColor: accent),
+      scaffoldBackgroundColor: const Color(0xFFFAFAF7)),
     onGenerateRoute: (settings) => MaterialPageRoute(
       settings: settings,
       builder: (_) {
@@ -50,21 +51,16 @@ class BookingPage extends StatefulWidget {
 }
 
 class _BookingPageState extends State<BookingPage> {
-  // Demo fallback only; with a backend, names, durations and prices come from public.services
-  // (admins edit prices there) and the server uses its own values when booking.
-  static const demoServices = [
-    Service('manicure', 'Manikür & jel oje', 60, 35, Icons.back_hand_outlined),
-    Service('haircut', 'Saç kesimi & şekillendirme', 45, 30, Icons.content_cut),
-    Service('brows', 'Kaş şekillendirme', 20, 15, Icons.face_outlined),
-  ];
+  // Names, durations and prices come from public.services (admins edit prices there);
+  // the server uses its own values when booking. Without a backend, booking is unavailable.
   final form = GlobalKey<FormState>();
   final name = TextEditingController();
   final phone = TextEditingController();
   final email = TextEditingController();
-  List<Service> services = demoServices;
-  Service service = demoServices.first;
+  List<Service> services = const [];
+  Service service = const Service('', '', 0, 0, Icons.spa_outlined);
   bool servicesLoading = backendConfigured;
-  bool servicesFailed = false;
+  bool servicesFailed = !backendConfigured;
   DateTime? date;
   String? time;
   int step = 0;
@@ -99,7 +95,7 @@ class _BookingPageState extends State<BookingPage> {
   }
   String isoDate(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   Future<void> submit() async {
-    if (!backendConfigured) { setState(() => completed = true); return; }
+    if (!backendConfigured) return;
     setState(() => submitting = true);
     String? problem;
     try {
@@ -137,20 +133,15 @@ class _BookingPageState extends State<BookingPage> {
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('BEAUTY STUDIO', style: TextStyle(letterSpacing: 3, fontSize: 17)),
-      backgroundColor: const Color(0xFFFAF7F5), centerTitle: true),
-    body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1200),
+      backgroundColor: const Color(0xFFFAFAF7), foregroundColor: ink, centerTitle: true, elevation: 0),
+    body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100),
       child: ListView(padding: const EdgeInsets.all(24), children: [
-        const Text('Kendine güzel bir\nzaman ayır.', style: TextStyle(fontSize: 38, fontWeight: FontWeight.w600, height: 1.15)),
-        const SizedBox(height: 12),
-        const Text('Tırnak, saç ve kaş bakımı • Hollanda', style: TextStyle(color: Colors.black54)),
-        const SizedBox(height: 24),
-        if (!backendConfigured) ...[Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: const Color(0xFFF0E6EC), borderRadius: BorderRadius.circular(12)),
-          child: const Text('Demo: Saatler örnektir. Bu ekran gerçek rezervasyon oluşturmaz.')),
-        const SizedBox(height: 24)],
+        const BookingHero(),
+        const SizedBox(height: 28),
         if (completed) ...[
           const Icon(Icons.check_circle_outline, size: 64, color: Color(0xFF79566C)),
           const SizedBox(height: 16),
-          Text(backendConfigured ? 'Randevunuz alındı' : 'Rezervasyon önizlemesi hazır', textAlign: TextAlign.center, style: TextStyle(fontSize: 25)),
+          const Text('Randevunuz alındı', textAlign: TextAlign.center, style: TextStyle(fontSize: 25)),
           const SizedBox(height: 12),
           Text('${name.text}\n${service.name}\n${dateLabel(date!)} • $time\n${service.priceLabel}', textAlign: TextAlign.center),
           const SizedBox(height: 12),
@@ -163,14 +154,12 @@ class _BookingPageState extends State<BookingPage> {
           const SizedBox(height: 24),
           OutlinedButton(onPressed: () => setState(() { completed = false; cancelToken = null; step = 0; date = null; time = null; name.clear(); phone.clear(); email.clear(); }), child: const Text('Yeni randevu seç')),
         ] else ...[
-          Wrap(spacing: 8, runSpacing: 8, children: List.generate(4, (i) => Chip(
-            backgroundColor: i == step ? const Color(0xFFE5D5DF) : Colors.white,
-            label: Text('${i + 1}. ${['Hizmet', 'Tarih & saat', 'Bilgiler', 'Özet'][i]}')))),
+          BookingProgress(step: step),
           const SizedBox(height: 20),
-          Card(color: Colors.white, child: Padding(padding: const EdgeInsets.all(24), child: content())),
+          Container(padding: const EdgeInsets.all(24), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFE8ECE7))), child: content()),
           const SizedBox(height: 20),
           Row(children: [if (step > 0) TextButton(onPressed: () => setState(() => step--), child: const Text('Geri')),
-            const Spacer(), FilledButton(onPressed: submitting ? null : next, child: Text(step == 3 ? (submitting ? 'Kaydediliyor…' : backendConfigured ? 'Randevuyu onayla' : 'Önizlemeyi tamamla') : 'Devam et'))]),
+            const Spacer(), FilledButton(style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 22), backgroundColor: accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), onPressed: submitting || (step == 0 && (servicesLoading || servicesFailed || services.isEmpty)) ? null : next, child: Text(step == 3 ? (submitting ? 'Kaydediliyor…' : 'Randevuyu onayla') : 'Devam et'))]),
         ],
         const SizedBox(height: 32),
         const Text('Size özel bakım, sakin bir ortam.', textAlign: TextAlign.center, style: TextStyle(color: Colors.black45)),
@@ -179,19 +168,16 @@ class _BookingPageState extends State<BookingPage> {
 
   Widget content() {
     if (step == 0 && servicesLoading) return const Center(child: CircularProgressIndicator());
+    if (step == 0 && !backendConfigured) return const Text('Online randevu şu an kullanılamıyor. Lütfen salonu arayın.');
     if (step == 0 && (servicesFailed || services.isEmpty)) return Row(children: [const Expanded(child: Text('Hizmetler yüklenemedi.')),
       TextButton(onPressed: loadServices, child: const Text('Tekrar dene'))]);
     if (step == 0) return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Text('Hizmetini seç', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
       const SizedBox(height: 16),
-      ...services.map((s) => Padding(padding: const EdgeInsets.only(bottom: 12), child: InkWell(
-        borderRadius: BorderRadius.circular(16), onTap: () => setState(() => service = s),
-        child: Container(padding: const EdgeInsets.all(16), decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16), color: service.id == s.id ? const Color(0xFFF5EDF2) : Colors.white,
-          border: Border.all(color: service.id == s.id ? const Color(0xFF79566C) : const Color(0xFFE8E3E6))),
-          child: Row(children: [Icon(s.icon), const SizedBox(width: 14), Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start,
-            children: [Text(s.name, style: const TextStyle(fontWeight: FontWeight.w600)), Text('${s.minutes} dakika', style: const TextStyle(color: Colors.black54))])),
-            Text(s.priceLabel), const SizedBox(width: 12), Icon(service.id == s.id ? Icons.radio_button_checked : Icons.radio_button_off)])))))
+      ...services.map((s) => ModernServiceTile(
+        title: s.name, price: s.priceLabel, minutes: s.minutes, icon: s.icon,
+        selected: service.id == s.id, onTap: () => setState(() => service = s),
+      )),
     ]);
     if (step == 1) return BookingTimePicker(
       serviceId: service.id, service: service.name, minutes: service.minutes, price: service.price,
@@ -218,7 +204,7 @@ class _BookingPageState extends State<BookingPage> {
       Text('${dateLabel(date!)} • $time • Europe/Amsterdam'),
       const SizedBox(height: 16), Text(name.text), Text(phone.text), Text(email.text),
       const SizedBox(height: 20),
-      Text(backendConfigured ? 'Onayladığınızda saat tekrar kontrol edilir ve sizin için ayrılır.' : 'Bu demo yalnızca seçiminizi gösterir. Gerçek rezervasyon için müsaitlik kontrolü ve kayıt sistemi bağlanmalıdır.'),
+      const Text('Onayladığınızda saat tekrar kontrol edilir ve sizin için ayrılır.'),
     ]);
   }
 }

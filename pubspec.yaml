@@ -1,5 +1,5 @@
-name: beauty_booking_demo
-description: Beauty appointment booking demo
+name: beauty_booking
+description: Beauty Studio online appointment booking
 publish_to: none
 version: 1.0.0+1
 environment:

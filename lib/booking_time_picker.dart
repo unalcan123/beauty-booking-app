@@ -32,7 +32,7 @@ class _BookingTimePickerState extends State<BookingTimePicker> {
   static String isoDate(DateTime d) => '${d.year}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}';
   // Free start times come from the server, which also enforces them when booking.
   Future<List<String>> loadSlots(DateTime d) async {
-    if (!backendConfigured) return List.generate(9, (i) => '${(i + 9).toString().padLeft(2, '0')}:00');
+    if (!backendConfigured) return const [];
     final rows = await Supabase.instance.client.rpc('get_available_slots', params: {'p_day': isoDate(d), 'p_service_id': widget.serviceId});
     return [for (final r in rows as List) r['slot'] as String];
   }
@@ -104,7 +104,7 @@ class _BookingTimePickerState extends State<BookingTimePicker> {
     }),
     const SizedBox(height: 22),
     Row(mainAxisAlignment: MainAxisAlignment.end, children: [const Icon(Icons.circle, size: 13, color: blue), const SizedBox(width: 6),
-      Text(backendConfigured ? 'Müsait saatler' : 'Örnek müsait saatler', style: const TextStyle(color: Colors.black54, fontSize: 12))]),
+      const Text('Müsait saatler', style: const TextStyle(color: Colors.black54, fontSize: 12))]),
   ]);
   }
   @override

@@ -8,7 +8,7 @@ const transport = nodemailer.createTransport({
   host: "smtp.gmail.com",
   port: 465, // Supabase Edge Functions block outbound 25/587.
   secure: true,
-  auth: { user: env("GMAIL_USER"), pass: env("GMAIL_APP_PASSWORD") },
+  auth: { user: env("GMAIL_USER").trim(), pass: env("GMAIL_APP_PASSWORD").replace(/\s/g, "") },
 });
 
 type Event = {
@@ -79,8 +79,10 @@ Deno.serve(async (req) => {
     await transport.sendMail({ from, to: event.client_email, replyTo: env("GMAIL_USER"), ...customer });
     await transport.sendMail({ from, to: salonInbox, ...salon });
   } catch (err) {
-    console.error("mail failed", err instanceof Error ? err.message : err);
-    return new Response("mail failed", { status: 502 });
+    const reason = err instanceof Error ? err.message : String(err);
+    console.error("mail failed", reason);
+    // Only the database trigger can read this response (secret-protected endpoint).
+    return new Response(`mail failed: ${reason.slice(0, 200)}`, { status: 502 });
   }
   return new Response("ok");
 });

@@ -81,6 +81,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   void initState() { super.initState(); refresh(); }
   void refresh() { appointments = Supabase.instance.client.from('appointments').select().order('starts_at'); }
+  Future<void> cancel(String id) async {
+    final sure = await showDialog<bool>(context: context, builder: (c) => AlertDialog(
+      title: const Text('Randevu iptal edilsin mi?'), content: const Text('Saat yeniden açılır ve müşteriye iptal e-postası gönderilir.'),
+      actions: [TextButton(onPressed: () => Navigator.pop(c, false), child: const Text('Vazgeç')),
+        FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('İptal et'))]));
+    if (sure != true) return;
+    await Supabase.instance.client.from('appointments').update({'status': 'cancelled'}).eq('id', id);
+    if (mounted) setState(refresh);
+  }
   // Salon times are Europe/Amsterdam; the admin's browser is assumed to be in that zone.
   String when(Object? iso) {
     final t = DateTime.parse(iso as String).toLocal();
@@ -105,7 +114,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         const SizedBox(height: 32), const Text('Randevular', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600)), const SizedBox(height: 16),
         if (rows.isEmpty) const Card(child: Padding(padding: EdgeInsets.all(32), child: Text('Henüz kayıtlı randevu bulunmuyor.'))),
         ...rows.map((r) => Card(child: ListTile(isThreeLine: true, leading: const Icon(Icons.event), title: Text('${r['client_name']} • ${r['service']}'),
-          subtitle: Text('${when(r['starts_at'])} • ${r['duration_minutes']} dk\n${r['client_email']} • ${r['client_phone']}'), trailing: Text('€${r['price']}\n${r['status']}')))),
+          subtitle: Text('${when(r['starts_at'])} • ${r['duration_minutes']} dk\n${r['client_email']} • ${r['client_phone']}'), trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+            Text('€${r['price']}\n${r['status'] == 'cancelled' ? 'iptal (${r['cancelled_by'] ?? ''})' : r['status']}', textAlign: TextAlign.end),
+            if (r['status'] == 'confirmed') IconButton(tooltip: 'İptal et (müşteriye e-posta gider)', icon: const Icon(Icons.event_busy),
+              onPressed: () => cancel(r['id'] as String)),
+          ])))),
       ]);
     }));
   Widget metric(String title, String value, IconData icon) => SizedBox(width: 260, child: Card(child: Padding(padding: const EdgeInsets.all(24), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Icon(icon), const SizedBox(height: 16), Text(value, style: const TextStyle(fontSize: 30, fontWeight: FontWeight.w600)), Text(title)]))));

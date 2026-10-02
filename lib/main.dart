@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'booking_time_picker.dart';
 import 'admin_portal.dart';
+import 'cancel_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 Future<void> main() async {
@@ -20,8 +21,12 @@ class BeautyApp extends StatelessWidget {
       scaffoldBackgroundColor: Colors.white),
     onGenerateRoute: (settings) => MaterialPageRoute(
       settings: settings,
-      builder: (_) => settings.name == '/admin' || settings.name == '/dashboard'
-        ? const AdminPortal() : const BookingPage(),
+      builder: (_) {
+        final uri = Uri.parse(settings.name ?? '/');
+        if (uri.path == '/admin' || uri.path == '/dashboard') return const AdminPortal();
+        if (uri.path == '/iptal') return CancelPage(token: uri.queryParameters['t'] ?? '');
+        return const BookingPage();
+      },
     ),
   );
 }
@@ -55,6 +60,7 @@ class _BookingPageState extends State<BookingPage> {
   String? time;
   int step = 0;
   bool completed = false, submitting = false;
+  String? cancelToken;
   @override
   void dispose() { name.dispose(); phone.dispose(); email.dispose(); super.dispose(); }
 
@@ -71,7 +77,7 @@ class _BookingPageState extends State<BookingPage> {
     setState(() => submitting = true);
     String? problem;
     try {
-      await Supabase.instance.client.rpc('book_appointment', params: {
+      cancelToken = await Supabase.instance.client.rpc('book_appointment', params: {
         'p_service_id': service.id, 'p_day': isoDate(date!), 'p_time': time,
         'p_name': name.text.trim(), 'p_email': email.text.trim(), 'p_phone': phone.text.trim()});
     } on PostgrestException catch (e) {
@@ -122,9 +128,14 @@ class _BookingPageState extends State<BookingPage> {
           const SizedBox(height: 12),
           Text('${name.text}\n${service.name}\n${dateLabel(date!)} • $time\n€${service.price}', textAlign: TextAlign.center),
           const SizedBox(height: 12),
-          Text(backendConfigured ? 'Saat sizin için ayrıldı. Değişiklik için salonla iletişime geçin.' : 'Bilgiler gönderilmedi ve kaydedilmedi.', textAlign: TextAlign.center),
+          Text(backendConfigured ? 'Saat sizin için ayrıldı. Onay e-postası ${email.text.trim()} adresine gönderilecek.' : 'Bilgiler gönderilmedi ve kaydedilmedi.', textAlign: TextAlign.center),
+          if (cancelToken != null) ...[
+            const SizedBox(height: 12),
+            const Text('İptal etmeniz gerekirse (en geç 24 saat önce) bu bağlantıyı saklayın:', textAlign: TextAlign.center, style: TextStyle(color: Colors.black54)),
+            SelectableText('${Uri.base.removeFragment()}#/iptal?t=$cancelToken', textAlign: TextAlign.center),
+          ],
           const SizedBox(height: 24),
-          OutlinedButton(onPressed: () => setState(() { completed = false; step = 0; date = null; time = null; name.clear(); phone.clear(); email.clear(); }), child: const Text('Yeni randevu seç')),
+          OutlinedButton(onPressed: () => setState(() { completed = false; cancelToken = null; step = 0; date = null; time = null; name.clear(); phone.clear(); email.clear(); }), child: const Text('Yeni randevu seç')),
         ] else ...[
           Wrap(spacing: 8, runSpacing: 8, children: List.generate(4, (i) => Chip(
             backgroundColor: i == step ? const Color(0xFFE5D5DF) : Colors.white,

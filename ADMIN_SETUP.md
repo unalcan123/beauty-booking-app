@@ -13,7 +13,7 @@ Secret/service_role anahtarı bu depoya veya Flutter'a asla eklenmez.
 
 Yeni bir projede yeniden kurmak için:
 
-1. SQL Editor içinde önce `supabase/schema.sql`, sonra `supabase/booking.sql` içeriğini çalıştır.
+1. SQL Editor içinde sırasıyla `supabase/schema.sql`, `supabase/booking.sql`, `supabase/cancellation.sql` çalıştır.
 2. Authentication > Users > Add user ile kendi e-postan ve güçlü şifrenle
    yönetici hesabı oluştur ("Auto Confirm User" işaretli). Şifreyi dosyalara veya GitHub'a yazma.
 3. SQL Editor içinde çalıştır:
@@ -42,6 +42,23 @@ kayıt `book_appointment` ile yapılır. Çalışma saatleri 09:00–18:00 (Euro
 başlangıçlar tam saatte, en fazla 90 gün ileri. Tek koltuk varsayılır: çakışan aktif randevuları
 `appointments_no_overlap` kısıtı veritabanında engeller (eşzamanlı isteklerde de).
 İptal (`status = 'cancelled'`) saati yeniden açar. Ziyaretçiler başka müşterilerin bilgilerini göremez.
+
+## İptal ve e-posta bildirimleri
+
+Müşteri onay e-postasındaki (ve onay ekranındaki) `/#/iptal?t=...` bağlantısıyla randevudan
+en geç 24 saat önce iptal edebilir. Kayıt silinmez, `cancelled` olur ve saat yeniden açılır.
+Admin, Dashboard'daki iptal düğmesiyle iptal edebilir; müşteriye e-posta gider.
+
+E-postaları `supabase/functions/notify` Edge Function'ı Gmail (smtp.gmail.com:465) ile gönderir.
+Veritabanı tetikleyicisi fonksiyonu Vault'taki `notify_webhook_secret` ile çağırır.
+Edge Function secret'ları (Supabase > Edge Functions > Secrets):
+
+- `GMAIL_USER`: müşterilerin gördüğü gönderen adres
+- `GMAIL_APP_PASSWORD`: bu hesabın Google uygulama şifresi (yalnızca panelden girilir)
+- `SALON_EMAIL`: yeni randevu/iptal kopyalarının gideceği özel adres
+- `SITE_URL`, `NOTIFY_WEBHOOK_SECRET`
+
+Gönderen adresi değiştirmek için `GMAIL_USER` ve `GMAIL_APP_PASSWORD` güncellenir; kod değişmez.
 
 Doğrulama: yapılandırma yokken müşteri sayfasında yönetim bağlantısı olmaması,
 /admin ve /dashboard doğrudan erişiminin kapalı kalması otomatik test edilir.

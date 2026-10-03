@@ -67,7 +67,7 @@ class _AdminPortalState extends State<AdminPortal> {
     });
   }
   Widget shell(Widget child) => Scaffold(backgroundColor: const Color(0xFFF7F5FA),
-    appBar: AppBar(title: const Text('Beauty Studio • Beheer')),
+    appBar: AppBar(title: const Text('Brow Belle • Beheer')),
     body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: SizedBox(width: 420,
       child: Card(child: Padding(padding: const EdgeInsets.all(32), child: child))))));
 }
@@ -147,7 +147,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   };
   @override
   Widget build(BuildContext context) => Scaffold(backgroundColor: const Color(0xFFF7F5FA),
-    appBar: AppBar(title: const Text('Beauty Studio • Dashboard'), actions: [
+    appBar: AppBar(title: const Text('Brow Belle • Dashboard'), actions: [
       IconButton(tooltip: 'Vernieuwen', onPressed: () => setState(refresh), icon: const Icon(Icons.refresh)),
       TextButton.icon(onPressed: () => Supabase.instance.client.auth.signOut(), icon: const Icon(Icons.logout), label: const Text('Uitloggen')), const SizedBox(width: 16),
     ]),

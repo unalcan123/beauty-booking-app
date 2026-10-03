@@ -16,7 +16,7 @@ class BeautyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MaterialApp(
     debugShowCheckedModeBanner: false,
-    title: 'Beauty Studio',
+    title: 'Brow Belle',
     theme: ThemeData(useMaterial3: true,
       colorScheme: ColorScheme.fromSeed(seedColor: accent),
       scaffoldBackgroundColor: const Color(0xFFFAFAF7)),
@@ -132,7 +132,7 @@ class _BookingPageState extends State<BookingPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('BEAUTY STUDIO', style: TextStyle(letterSpacing: 3, fontSize: 17)),
+    appBar: AppBar(title: const Text('BROW BELLE', style: TextStyle(letterSpacing: 3, fontSize: 17)),
       backgroundColor: const Color(0xFFFAFAF7), foregroundColor: ink, centerTitle: true, elevation: 0),
     body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100),
       child: ListView(padding: const EdgeInsets.all(24), children: [

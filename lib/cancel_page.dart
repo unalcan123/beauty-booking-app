@@ -47,7 +47,7 @@ class _CancelPageState extends State<CancelPage> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('BEAUTY STUDIO', style: TextStyle(letterSpacing: 3, fontSize: 17)),
+    appBar: AppBar(title: const Text('BROW BELLE', style: TextStyle(letterSpacing: 3, fontSize: 17)),
       backgroundColor: const Color(0xFFFAF7F5), centerTitle: true),
     body: Center(child: SingleChildScrollView(padding: const EdgeInsets.all(24), child: SizedBox(width: 460,
       child: Card(child: Padding(padding: const EdgeInsets.all(32), child: FutureBuilder<Map<String, dynamic>?>(

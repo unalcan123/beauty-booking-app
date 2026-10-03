@@ -1,4 +1,4 @@
-# Beauty Studio — Flutter Web
+# Brow Belle — Flutter Web
 
 Telefon ve bilgisayar tarayıcılarında kullanılacak randevu arayüzü.
 Supabase'e bağlıdır: müsait saatleri sunucudan alır ve randevuları çift kayıt olmadan kaydeder.

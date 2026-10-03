@@ -37,10 +37,10 @@ function messages(e: Event) {
   if (e.type === "booked") {
     return {
       customer: {
-        subject: "Je afspraak is bevestigd – Beauty Studio",
+        subject: "Je afspraak is bevestigd – Brow Belle",
         text: `Hallo ${e.client_name},\n\nJe afspraak is gemaakt.\n\n${details}\n\n` +
           `Wil je annuleren? Gebruik dan uiterlijk 24 uur voor je afspraak deze link:\n${site}#/annuleren?t=${e.cancel_token}\n\n` +
-          `Tot ziens,\nBeauty Studio`,
+          `Tot ziens,\nBrow Belle`,
       },
       salon: {
         subject: `Nieuwe afspraak: ${e.client_name} – ${when(e.starts_at)}`,
@@ -51,10 +51,10 @@ function messages(e: Event) {
   const byCustomer = e.cancelled_by === "customer";
   return {
     customer: {
-      subject: "Je afspraak is geannuleerd – Beauty Studio",
+      subject: "Je afspraak is geannuleerd – Brow Belle",
       text: `Hallo ${e.client_name},\n\n` +
         (byCustomer ? "Je annulering is ontvangen. " : "Je afspraak is door de salon geannuleerd. ") +
-        `De onderstaande afspraak gaat niet door.\n\n${details}\n\nNieuwe afspraak maken: ${site}\n\nBeauty Studio`,
+        `De onderstaande afspraak gaat niet door.\n\n${details}\n\nNieuwe afspraak maken: ${site}\n\nBrow Belle`,
     },
     salon: {
       subject: `Afspraak geannuleerd (${byCustomer ? "klant" : "salon"}): ${e.client_name} – ${when(e.starts_at)}`,
@@ -72,7 +72,7 @@ Deno.serve(async (req) => {
   if (event.type !== "booked" && event.type !== "cancelled") {
     return new Response("bad request", { status: 400 });
   }
-  const from = `Beauty Studio <${env("GMAIL_USER")}>`;
+  const from = `Brow Belle <${env("GMAIL_USER")}>`;
   const salonInbox = env("SALON_EMAIL") || env("GMAIL_USER");
   const { customer, salon } = messages(event);
   try {

@@ -5,7 +5,7 @@ import 'package:beauty_booking/main.dart';
 void main() {
   testWidgets('Customer page has no dashboard entry', (tester) async {
     await tester.pumpWidget(const BeautyApp());
-    expect(find.text('BEAUTY STUDIO'), findsOneWidget);
+    expect(find.text('BROW BELLE'), findsOneWidget);
     expect(find.text('Dashboard'), findsNothing);
     expect(find.text('Inloggen beheerder'), findsNothing);
     expect(find.textContaining('Demo'), findsNothing);

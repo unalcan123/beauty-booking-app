@@ -1,6 +1,6 @@
 // Sends booking confirmation and cancellation e-mails through Gmail SMTP.
 // Called only by the appointments_notify database trigger (shared secret header).
-// GMAIL_USER is the sender customers see; SALON_EMAIL (private) receives owner copies.
+// GMAIL_USER is the sender customers see; SALON_EMAIL (private, optional) receives owner copies.
 import nodemailer from "npm:nodemailer@6.9.16";
 
 const env = (name: string) => Deno.env.get(name) ?? "";
@@ -73,11 +73,11 @@ Deno.serve(async (req) => {
     return new Response("bad request", { status: 400 });
   }
   const from = `Brow Belle <${env("GMAIL_USER")}>`;
-  const salonInbox = env("SALON_EMAIL") || env("GMAIL_USER");
+  const salonInbox = env("SALON_EMAIL"); // empty: no owner copy
   const { customer, salon } = messages(event);
   try {
     await transport.sendMail({ from, to: event.client_email, replyTo: env("GMAIL_USER"), ...customer });
-    await transport.sendMail({ from, to: salonInbox, ...salon });
+    if (salonInbox) await transport.sendMail({ from, to: salonInbox, ...salon });
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("mail failed", reason);

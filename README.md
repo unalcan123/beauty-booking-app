@@ -32,6 +32,6 @@ Henüz e-posta/SMS onayı ve müşterinin kendi randevusunu iptal etmesi yoktur.
 
 ## Alan adı
 
-Alan adı alındığında GitHub Pages Custom domain ve DNS ayarları yapılır.
-İş akışındaki web derlemesinde `--base-href /` kullanılmalı ve alan adı
-`web/CNAME` dosyasına eklenmelidir.
+Site `https://browbelle.nl/` adresinde yayınlanır (`web/CNAME`). Bu dosya varken
+iş akışı `--base-href /` ile derler. DNS Vimexx'te: `@` için GitHub Pages A kayıtları,
+`www` için `unalcan123.github.io` CNAME. Supabase `SITE_URL` gizli değeri bu adres olmalıdır.

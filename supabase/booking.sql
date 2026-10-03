@@ -13,9 +13,9 @@ revoke all on public.services from anon, authenticated;
 grant select on public.services to anon, authenticated;
 create policy "Anyone can read services" on public.services for select to anon, authenticated using (true);
 insert into public.services values
-  ('manicure', 'Manikür & jel oje', 60, 35),
-  ('haircut', 'Saç kesimi & şekillendirme', 45, 30),
-  ('brows', 'Kaş şekillendirme', 20, 15);
+  ('manicure', 'Manicure & gellak', 60, 35),
+  ('haircut', 'Knippen & stylen', 45, 30),
+  ('brows', 'Wenkbrauwen modelleren', 20, 15);
 
 alter table public.appointments add column ends_at timestamptz not null;
 alter table public.appointments add column created_at timestamptz not null default now();

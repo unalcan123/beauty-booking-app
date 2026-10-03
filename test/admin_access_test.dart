@@ -7,9 +7,9 @@ void main() {
     await tester.pumpWidget(const BeautyApp());
     expect(find.text('BEAUTY STUDIO'), findsOneWidget);
     expect(find.text('Dashboard'), findsNothing);
-    expect(find.text('Yönetici girişi'), findsNothing);
+    expect(find.text('Inloggen beheerder'), findsNothing);
     expect(find.textContaining('Demo'), findsNothing);
-    expect(find.textContaining('örnek'), findsNothing);
+    expect(find.textContaining('voorbeeld'), findsNothing);
   });
   test('Prices are shown without trailing zeros', () {
     expect(euro(35), '€35');
@@ -22,9 +22,9 @@ void main() {
       final context = tester.element(find.byType(BookingPage));
       Navigator.of(context).pushNamed(route);
       await tester.pumpAndSettle();
-      expect(find.text('Yönetici girişi'), findsOneWidget);
-      expect(find.text('Güvenli giriş bağlantısı henüz yapılandırılmadı. Yönetim paneli erişime kapalı.'), findsOneWidget);
-      expect(find.text('Genel bakış'), findsNothing);
+      expect(find.text('Inloggen beheerder'), findsOneWidget);
+      expect(find.text('De beveiligde inlogverbinding is nog niet ingesteld. Het beheerpaneel is niet toegankelijk.'), findsOneWidget);
+      expect(find.text('Overzicht'), findsNothing);
     });
   }
 }

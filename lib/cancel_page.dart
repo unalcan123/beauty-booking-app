@@ -30,19 +30,19 @@ class _CancelPageState extends State<CancelPage> {
       done = true;
     } on PostgrestException catch (e) {
       error = switch (e.message) {
-        'too_late' => 'Randevuya 24 saatten az kaldığı için çevrim içi iptal edilemiyor. Lütfen salonu arayın.',
-        'already_cancelled' => 'Bu randevu zaten iptal edilmiş.',
-        _ => 'Randevu bulunamadı.',
+        'too_late' => 'Je afspraak begint binnen 24 uur en kan niet meer online worden geannuleerd. Bel de salon.',
+        'already_cancelled' => 'Deze afspraak is al geannuleerd.',
+        _ => 'Afspraak niet gevonden.',
       };
     } catch (_) {
-      error = 'İptal edilemedi. Bağlantınızı kontrol edip tekrar deneyin.';
+      error = 'Annuleren mislukt. Controleer je verbinding en probeer het opnieuw.';
     }
     if (mounted) setState(() => busy = false);
   }
   String when(String iso) {
     final t = DateTime.parse(iso).toLocal();
     String two(int n) => n.toString().padLeft(2, '0');
-    return '${two(t.day)}.${two(t.month)}.${t.year} ${two(t.hour)}:${two(t.minute)}';
+    return '${two(t.day)}-${two(t.month)}-${t.year} ${two(t.hour)}:${two(t.minute)}';
   }
 
   @override
@@ -55,21 +55,21 @@ class _CancelPageState extends State<CancelPage> {
         builder: (context, result) {
           if (result.connectionState != ConnectionState.done) return const Center(child: CircularProgressIndicator());
           final b = result.data;
-          if (result.hasError || b == null) return const Text('Randevu bulunamadı. Bağlantının tamamını kopyaladığınızdan emin olun.', textAlign: TextAlign.center);
+          if (result.hasError || b == null) return const Text('Afspraak niet gevonden. Controleer of je de volledige link hebt gekopieerd.', textAlign: TextAlign.center);
           final cancelled = done || b['status'] == 'cancelled';
           return Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Randevu iptali', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
+            const Text('Afspraak annuleren', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w600)),
             const SizedBox(height: 20),
-            Text('${b['service']}'), Text('${when(b['starts_at'] as String)} • ${b['duration_minutes']} dakika'),
+            Text('${b['service']}'), Text('${when(b['starts_at'] as String)} • ${b['duration_minutes']} minuten'),
             const SizedBox(height: 20),
-            if (cancelled) const Text('Randevunuz iptal edildi. Onay e-postası gönderilecek.', style: TextStyle(fontWeight: FontWeight.w600))
-            else if (b['cancellable'] != true) const Text('Randevuya 24 saatten az kaldığı için çevrim içi iptal edilemiyor. Lütfen salonu arayın.')
+            if (cancelled) const Text('Je afspraak is geannuleerd. Je ontvangt een bevestiging per e-mail.', style: TextStyle(fontWeight: FontWeight.w600))
+            else if (b['cancellable'] != true) const Text('Je afspraak begint binnen 24 uur en kan niet meer online worden geannuleerd. Bel de salon.')
             else SizedBox(width: double.infinity, child: FilledButton(
               style: FilledButton.styleFrom(backgroundColor: const Color(0xFFB3261E)),
-              onPressed: busy ? null : cancel, child: Text(busy ? 'İptal ediliyor…' : 'Randevuyu iptal et'))),
+              onPressed: busy ? null : cancel, child: Text(busy ? 'Bezig met annuleren…' : 'Afspraak annuleren'))),
             if (error != null) Padding(padding: const EdgeInsets.only(top: 12), child: Text(error!, style: const TextStyle(color: Colors.red))),
             const SizedBox(height: 16),
-            TextButton(onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false), child: const Text('Yeni randevu al')),
+            TextButton(onPressed: () => Navigator.of(context).pushNamedAndRemoveUntil('/', (_) => false), child: const Text('Nieuwe afspraak maken')),
           ]);
         })))))),
   );

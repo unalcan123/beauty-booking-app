@@ -13,7 +13,7 @@ Secret/service_role anahtarı bu depoya veya Flutter'a asla eklenmez.
 
 Yeni bir projede yeniden kurmak için:
 
-1. SQL Editor içinde sırasıyla `supabase/schema.sql`, `supabase/booking.sql`, `supabase/cancellation.sql`, `supabase/admin_services.sql` çalıştır.
+1. SQL Editor içinde sırasıyla `supabase/schema.sql`, `supabase/booking.sql`, `supabase/cancellation.sql`, `supabase/admin_services.sql`, `supabase/dutch_names.sql` çalıştır.
 2. Authentication > Users > Add user ile kendi e-postan ve güçlü şifrenle
    yönetici hesabı oluştur ("Auto Confirm User" işaretli). Şifreyi dosyalara veya GitHub'a yazma.
 3. SQL Editor içinde çalıştır:

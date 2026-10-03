@@ -25,7 +25,7 @@ type Event = {
 };
 
 const when = (iso: string) =>
-  new Intl.DateTimeFormat("tr-TR", {
+  new Intl.DateTimeFormat("nl-NL", {
     timeZone: "Europe/Amsterdam",
     weekday: "long", day: "2-digit", month: "long", year: "numeric",
     hour: "2-digit", minute: "2-digit",
@@ -33,32 +33,32 @@ const when = (iso: string) =>
 
 function messages(e: Event) {
   const site = env("SITE_URL").replace(/\/?$/, "/");
-  const details = `Hizmet: ${e.service}\nTarih: ${when(e.starts_at)} (Amsterdam saati)\nSüre: ${e.duration_minutes} dakika\nÜcret: €${e.price}`;
+  const details = `Behandeling: ${e.service}\nDatum: ${when(e.starts_at)} (Nederlandse tijd)\nDuur: ${e.duration_minutes} minuten\nPrijs: €${e.price}`;
   if (e.type === "booked") {
     return {
       customer: {
-        subject: "Randevunuz onaylandı – Beauty Studio",
-        text: `Merhaba ${e.client_name},\n\nRandevunuz alındı.\n\n${details}\n\n` +
-          `İptal etmeniz gerekirse randevudan en geç 24 saat önce bu bağlantıyı kullanın:\n${site}#/iptal?t=${e.cancel_token}\n\n` +
-          `Görüşmek üzere,\nBeauty Studio`,
+        subject: "Je afspraak is bevestigd – Beauty Studio",
+        text: `Hallo ${e.client_name},\n\nJe afspraak is gemaakt.\n\n${details}\n\n` +
+          `Wil je annuleren? Gebruik dan uiterlijk 24 uur voor je afspraak deze link:\n${site}#/annuleren?t=${e.cancel_token}\n\n` +
+          `Tot ziens,\nBeauty Studio`,
       },
       salon: {
-        subject: `Yeni randevu: ${e.client_name} – ${when(e.starts_at)}`,
-        text: `${details}\n\nMüşteri: ${e.client_name}\nE-posta: ${e.client_email}\nTelefon: ${e.client_phone}`,
+        subject: `Nieuwe afspraak: ${e.client_name} – ${when(e.starts_at)}`,
+        text: `${details}\n\nKlant: ${e.client_name}\nE-mail: ${e.client_email}\nTelefoon: ${e.client_phone}`,
       },
     };
   }
   const byCustomer = e.cancelled_by === "customer";
   return {
     customer: {
-      subject: "Randevunuz iptal edildi – Beauty Studio",
-      text: `Merhaba ${e.client_name},\n\n` +
-        (byCustomer ? "İptal talebiniz alındı. " : "Randevunuz salon tarafından iptal edildi. ") +
-        `Aşağıdaki randevu artık geçerli değil.\n\n${details}\n\nYeni randevu için: ${site}\n\nBeauty Studio`,
+      subject: "Je afspraak is geannuleerd – Beauty Studio",
+      text: `Hallo ${e.client_name},\n\n` +
+        (byCustomer ? "Je annulering is ontvangen. " : "Je afspraak is door de salon geannuleerd. ") +
+        `De onderstaande afspraak gaat niet door.\n\n${details}\n\nNieuwe afspraak maken: ${site}\n\nBeauty Studio`,
     },
     salon: {
-      subject: `Randevu iptal edildi (${byCustomer ? "müşteri" : "admin"}): ${e.client_name} – ${when(e.starts_at)}`,
-      text: `${details}\n\nMüşteri: ${e.client_name}\nE-posta: ${e.client_email}\nTelefon: ${e.client_phone}`,
+      subject: `Afspraak geannuleerd (${byCustomer ? "klant" : "salon"}): ${e.client_name} – ${when(e.starts_at)}`,
+      text: `${details}\n\nKlant: ${e.client_name}\nE-mail: ${e.client_email}\nTelefoon: ${e.client_phone}`,
     },
   };
 }

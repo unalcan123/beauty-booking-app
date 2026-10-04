@@ -131,14 +131,14 @@ class _BookingPageState extends State<BookingPage> {
     setState(() => step++);
   }
 
-  bool get phone => MediaQuery.sizeOf(context).width < 500;
+  bool get narrow => MediaQuery.sizeOf(context).width < 500;
 
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppBar(title: const Text('BROW BELLE', style: TextStyle(letterSpacing: 3, fontSize: 17)),
       backgroundColor: const Color(0xFFFDF9F8), foregroundColor: ink, centerTitle: true, elevation: 0),
     body: Center(child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 1100),
-      child: ListView(padding: EdgeInsets.all(phone ? 16 : 24), children: [
+      child: ListView(padding: EdgeInsets.all(narrow ? 16 : 24), children: [
         const BookingHero(),
         const SizedBox(height: 28),
         if (completed) ...[
@@ -159,7 +159,7 @@ class _BookingPageState extends State<BookingPage> {
         ] else ...[
           BookingProgress(step: step),
           const SizedBox(height: 20),
-          Container(padding: EdgeInsets.all(phone ? 16 : 24), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFEFE5E7))), child: content()),
+          Container(padding: EdgeInsets.all(narrow ? 16 : 24), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(24), border: Border.all(color: const Color(0xFFEFE5E7))), child: content()),
           const SizedBox(height: 20),
           Row(children: [if (step > 0) TextButton(onPressed: () => setState(() => step--), child: const Text('Terug')),
             const Spacer(), FilledButton(style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 22), backgroundColor: accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), onPressed: submitting || (step == 0 && (servicesLoading || servicesFailed || services.isEmpty)) ? null : next, child: Text(step == 3 ? (submitting ? 'Bezig met opslaan…' : 'Afspraak bevestigen') : 'Verder'))]),

@@ -67,7 +67,7 @@ class BeautyPhoto extends StatelessWidget {
 
 class BookingGallery extends StatelessWidget {
   const BookingGallery({super.key});
-  static const photos = ['sfeer_huid', 'sfeer_makeup', 'brows', 'manicure', 'haircut'];
+  static const photos = ['sfeer_salon', 'sfeer_huid', 'sfeer_lounge', 'sfeer_makeup', 'sfeer_balie'];
   @override
   Widget build(BuildContext context) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
     const Text('SFEER BIJ BROW BELLE', style: TextStyle(color: accent, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w700)),
@@ -80,7 +80,7 @@ class BookingGallery extends StatelessWidget {
       const gap = 12.0;
       final size = (box.maxWidth - gap * (columns - 1)) / columns;
       return Wrap(spacing: gap, runSpacing: gap, children: [
-        for (final p in photos.take(columns == 2 ? 4 : columns)) SizedBox(width: size, height: size * 0.82,
+        for (final p in photos.take(columns == 2 ? 4 : columns)) SizedBox(width: size, height: size * 1.1,
           child: ClipRRect(borderRadius: BorderRadius.circular(20), child: BeautyPhoto('assets/images/$p.jpg'))),
       ]);
     }),

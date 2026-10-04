@@ -14,11 +14,9 @@ class BookingHero extends StatelessWidget {
       final text = Padding(padding: const EdgeInsets.all(28), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Text('EVEN TIJD VOOR JEZELF', style: TextStyle(color: accent, letterSpacing: 2, fontSize: 11, fontWeight: FontWeight.w700)),
         const SizedBox(height: 16),
-        Text('Gun jezelf een
-mooi moment.', style: TextStyle(color: ink, fontSize: box.maxWidth < 500 ? 30 : 46, fontWeight: FontWeight.w600, height: 1.1, letterSpacing: -1.5)),
+        Text('Gun jezelf een\nmooi moment.', style: TextStyle(color: ink, fontSize: box.maxWidth < 500 ? 30 : 46, fontWeight: FontWeight.w600, height: 1.1, letterSpacing: -1.5)),
         const SizedBox(height: 16),
-        const Text('Nagels, haar en wenkbrauwen.
-Kies je behandeling en een tijd die jou past.', style: TextStyle(color: Color(0xFF62726C), height: 1.6, fontSize: 15)),
+        const Text('Nagels, haar en wenkbrauwen.\nKies je behandeling en een tijd die jou past.', style: TextStyle(color: Color(0xFF62726C), height: 1.6, fontSize: 15)),
         const SizedBox(height: 24),
         const Wrap(spacing: 8, runSpacing: 8, children: [
           HeroChip(icon: Icons.back_hand_outlined, label: 'Nagels'),

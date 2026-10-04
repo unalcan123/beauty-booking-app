@@ -43,6 +43,7 @@ class Service {
 
 String euro(num value) => '€${value == value.roundToDouble() ? value.toInt() : value.toStringAsFixed(2)}';
 const serviceIcons = {'manicure': Icons.back_hand_outlined, 'haircut': Icons.content_cut, 'brows': Icons.face_outlined};
+const serviceImages = {'manicure': 'assets/images/manicure.jpg', 'haircut': 'assets/images/haircut.jpg', 'brows': 'assets/images/brows.jpg'};
 
 class BookingPage extends StatefulWidget {
   const BookingPage({super.key});
@@ -161,6 +162,8 @@ class _BookingPageState extends State<BookingPage> {
           Row(children: [if (step > 0) TextButton(onPressed: () => setState(() => step--), child: const Text('Terug')),
             const Spacer(), FilledButton(style: FilledButton.styleFrom(padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 22), backgroundColor: accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))), onPressed: submitting || (step == 0 && (servicesLoading || servicesFailed || services.isEmpty)) ? null : next, child: Text(step == 3 ? (submitting ? 'Bezig met opslaan…' : 'Afspraak bevestigen') : 'Verder'))]),
         ],
+        const SizedBox(height: 40),
+        const BookingGallery(),
         const SizedBox(height: 32),
         const Text('Persoonlijke verzorging in een rustige omgeving.', textAlign: TextAlign.center, style: TextStyle(color: Colors.black45)),
       ]))),
@@ -175,7 +178,7 @@ class _BookingPageState extends State<BookingPage> {
       const Text('Kies je behandeling', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600)),
       const SizedBox(height: 16),
       ...services.map((s) => ModernServiceTile(
-        title: s.name, price: s.priceLabel, minutes: s.minutes, icon: s.icon,
+        title: s.name, price: s.priceLabel, minutes: s.minutes, icon: s.icon, image: serviceImages[s.id],
         selected: service.id == s.id, onTap: () => setState(() => service = s),
       )),
     ]);

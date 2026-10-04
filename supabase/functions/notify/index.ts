@@ -1,15 +1,19 @@
-// Sends booking confirmation and cancellation e-mails through Gmail SMTP.
+// Sends booking confirmation and cancellation e-mails through the Resend API.
 // Called only by the appointments_notify database trigger (shared secret header).
-// GMAIL_USER is the sender customers see; SALON_EMAIL (private, optional) receives owner copies.
-import nodemailer from "npm:nodemailer@6.9.16";
-
+// Mail goes out from MAIL_FROM (a verified Resend domain); SALON_EMAIL (private, optional)
+// receives owner copies and REPLY_TO (optional) is where customer replies land.
 const env = (name: string) => Deno.env.get(name) ?? "";
-const transport = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465, // Supabase Edge Functions block outbound 25/587.
-  secure: true,
-  auth: { user: env("GMAIL_USER").trim(), pass: env("GMAIL_APP_PASSWORD").replace(/\s/g, "") },
-});
+
+type Mail = { from: string; to: string; subject: string; text: string; reply_to?: string };
+
+async function send(mail: Mail) {
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${env("RESEND_API_KEY").trim()}`, "Content-Type": "application/json" },
+    body: JSON.stringify(mail),
+  });
+  if (!res.ok) throw new Error(`resend ${res.status}: ${await res.text()}`);
+}
 
 type Event = {
   type: "booked" | "cancelled";
@@ -72,12 +76,13 @@ Deno.serve(async (req) => {
   if (event.type !== "booked" && event.type !== "cancelled") {
     return new Response("bad request", { status: 400 });
   }
-  const from = `Brow Belle <${env("GMAIL_USER")}>`;
+  const from = env("MAIL_FROM") || "Brow Belle <info@browbelle.nl>";
+  const replyTo = env("REPLY_TO");
   const salonInbox = env("SALON_EMAIL"); // empty: no owner copy
   const { customer, salon } = messages(event);
   try {
-    await transport.sendMail({ from, to: event.client_email, replyTo: env("GMAIL_USER"), ...customer });
-    if (salonInbox) await transport.sendMail({ from, to: salonInbox, ...salon });
+    await send({ from, to: event.client_email, ...(replyTo && { reply_to: replyTo }), ...customer });
+    if (salonInbox) await send({ from, to: salonInbox, ...salon });
   } catch (err) {
     const reason = err instanceof Error ? err.message : String(err);
     console.error("mail failed", reason);

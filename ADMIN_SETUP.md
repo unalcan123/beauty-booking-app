@@ -55,16 +55,18 @@ Müşteri onay e-postasındaki (ve onay ekranındaki) `/#/iptal?t=...` bağlant�
 en geç 24 saat önce iptal edebilir. Kayıt silinmez, `cancelled` olur ve saat yeniden açılır.
 Admin, Dashboard'daki iptal düğmesiyle iptal edebilir; müşteriye e-posta gider.
 
-E-postaları `supabase/functions/notify` Edge Function'ı Gmail (smtp.gmail.com:465) ile gönderir.
+E-postaları `supabase/functions/notify` Edge Function'ı Resend API ile gönderir
+(gönderen alan adı Resend'de doğrulanmış olmalı: `browbelle.nl`, DNS kayıtları Vimexx'te).
 Veritabanı tetikleyicisi fonksiyonu Vault'taki `notify_webhook_secret` ile çağırır.
 Edge Function secret'ları (Supabase > Edge Functions > Secrets):
 
-- `GMAIL_USER`: müşterilerin gördüğü gönderen adres
-- `GMAIL_APP_PASSWORD`: bu hesabın Google uygulama şifresi (yalnızca panelden girilir)
-- `SALON_EMAIL`: yeni randevu/iptal kopyalarının gideceği özel adres
+- `RESEND_API_KEY`: Resend API anahtarı (yalnızca "Sending access")
+- `MAIL_FROM` (isteğe bağlı): gönderen, varsayılan `Brow Belle <info@browbelle.nl>`
+- `REPLY_TO` (isteğe bağlı): müşteri yanıtlarının gideceği adres; boşsa yanıt adresi eklenmez
+- `SALON_EMAIL` (isteğe bağlı): yeni randevu/iptal kopyalarının gideceği özel adres
 - `SITE_URL`, `NOTIFY_WEBHOOK_SECRET`
 
-Gönderen adresi değiştirmek için `GMAIL_USER` ve `GMAIL_APP_PASSWORD` güncellenir; kod değişmez.
+Gönderen adresi değiştirmek için `MAIL_FROM` güncellenir; kod değişmez.
 
 Doğrulama: yapılandırma yokken müşteri sayfasında yönetim bağlantısı olmaması,
 /admin ve /dashboard doğrudan erişiminin kapalı kalması otomatik test edilir.
